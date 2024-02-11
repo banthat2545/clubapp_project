@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+// import 'dart:convert';
 import 'dart:convert';
 
 class profile_Screen extends StatefulWidget {
@@ -29,16 +30,20 @@ class _profile_ScreenState extends State<profile_Screen> {
   }
 
   Future<void> fetchUserProfile() async {
-    final url = Uri.parse('http://192.168.1.200/api_club_app/showUser.php');
+    final url = Uri.parse('http://192.168.1.198/api_club_app/showUser.php');
     final userProvider = Provider.of<User_Provider>(context, listen: false);
     try {
       final response = await http.post(
         url,
-        body: {'mb_id': userProvider.userId}, // เรียกใช้ค่า id จาก UserProvider
+        body: json.encode({
+          'mb_id': userProvider.getUserId()
+        }), // เรียกใช้ค่า id จาก UserProvider
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+
+        // json.decode(utf8.decode(response.bodyBytes));
         final Map<String, dynamic> userData = data['data'];
 
         String Memberid = userData['mb_id'] ?? '';
@@ -68,10 +73,10 @@ class _profile_ScreenState extends State<profile_Screen> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            CircleAvatar(
-              radius: 70,
-              backgroundImage: AssetImage(''),
-            ),
+            // CircleAvatar(
+            //   radius: 70,
+            //   backgroundImage: AssetImage(''),
+            // ),
             const SizedBox(height: 10),
             itemProfile('ID', id, CupertinoIcons.home),
             const SizedBox(height: 10),

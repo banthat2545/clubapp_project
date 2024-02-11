@@ -29,7 +29,7 @@ class _Login_ScreenState extends State<Login_Screen> {
     return;
   }
 
-  var url = Uri.parse('http://192.168.1.200/api_club_app/login.php');
+  var url = Uri.parse('http://192.168.1.198/api_club_app/login.php');
   var response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
@@ -57,11 +57,11 @@ class _Login_ScreenState extends State<Login_Screen> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Container(
-        //   decoration: BoxDecoration(
-        //       image: DecorationImage(
-        //           image: AssetImage("images/01_PF.jpg"), fit: BoxFit.cover)),
-        // ),
+        Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage("assate/images/01_PF.jpg"), fit: BoxFit.cover)),
+        ),
         Scaffold(
           backgroundColor: Colors.transparent,
           body: LayoutBuilder(

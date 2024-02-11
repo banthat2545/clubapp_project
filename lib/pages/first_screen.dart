@@ -1,4 +1,4 @@
-import 'package:clubapp_project/pages/LoginScreen.dart';
+import 'package:clubapp_project/pages/login_screen.dart';
 import 'package:clubapp_project/widget/app_text.dart';
 import 'package:clubapp_project/widget/app_large_text.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +70,7 @@ class _first_screenState extends State<first_screen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => LoginScreen(),
+              builder: (context) => Login_Screen(),
             ),
           );
         },

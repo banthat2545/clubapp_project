@@ -1,20 +1,61 @@
+import 'dart:convert';
 import 'package:clubapp_project/widget/app_text.dart';
 import 'package:clubapp_project/widget/back_button.dart';
+import 'package:clubapp_project/widget/member_modal.dart';
+import 'package:clubapp_project/widget/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class Activity_Results_Screen extends StatefulWidget {
   const Activity_Results_Screen({Key? key}) : super(key: key);
 
   @override
-  State<Activity_Results_Screen> createState() => _Activity_Results_ScreenState();
+  State<Activity_Results_Screen> createState() =>
+      _Activity_Results_ScreenState();
 }
 
-class _Activity_Results_ScreenState extends State<Activity_Results_Screen> with TickerProviderStateMixin {
+class _Activity_Results_ScreenState extends State<Activity_Results_Screen>
+    with TickerProviderStateMixin {
   TextEditingController searchController = TextEditingController();
+
+  Future<Map<String, dynamic>> fetchUserData(
+      BuildContext context, String mbId) async {
+    final apiUrl = 'http://192.168.1.198/api_club_app/show_User_Activity.php';
+    final userProvider = Provider.of<User_Provider>(context,
+        listen: false); // เปลี่ยนเป็น URL ของ API ของคุณ
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    final body = jsonEncode({'mb_id': userProvider.getUserId()});
+
+    final response =
+        await http.post(Uri.parse(apiUrl), headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // เรียกใช้งาน UserProvider จาก Provider
+      userProvider.setLoggedInCustomer(Member(
+        memberID: data['member_info']['mb_id'],
+        membername: data['member_info']['mb_name'],
+        memberEmail: data['member_info']['mb_email'],
+        memberTel: data['member_info']['mb_tel'],
+      ));
+      userProvider.setUserId(data['member_info']['mb_id']);
+
+      return data;
+    } else {
+      throw Exception('Failed to load user data');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    TabController _tabController = TabController(length: 3, vsync: this);
+    List<Map<String, dynamic>> activityTypeData =
+        []; // ประกาศตัวแปร activityTypeData ในส่วนที่ต้องการใช้งาน
+    TabController _tabController = TabController(length: 1, vsync: this);
     return Scaffold(
       body: Container(
         child: Column(
@@ -40,143 +81,15 @@ class _Activity_Results_ScreenState extends State<Activity_Results_Screen> with 
             //discover text หัวข้อ
             Container(
               margin: const EdgeInsets.only(left: 15),
-              child: AppText(text: "ผลกิจกรรม", size: 25,),
-            ),
-
-            SizedBox(height: 5,),
-
-            //ค้นหา
-            Container(
-              margin: EdgeInsets.only(right: 15, left: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search, color: Colors.black26),
-                        labelText: 'ค้นหา',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(width: 5,),
-
-                  SizedBox(
-                    width: 60, // กำหนดความกว้าง
-                    height: 45,  // กำหนดความยาว
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF3AE374), // กำหนดพื้นหลัง
-                      ),
-                      onPressed: () {
-                        String searchTerm = searchController.text;
-                        print('ค้นหาข้อมูล: $searchTerm');
-                      },
-                      child: const Column(
-                        mainAxisSize: MainAxisSize.min, // ทำให้ Column มีความกว้างเท่ากับปุ่ม
-                        mainAxisAlignment: MainAxisAlignment.center, // จัดให้เล็กเล่นอยู่ตรงกลาง
-                        children: [
-                          Icon(Icons.search, color: Colors.white, size: 30),
-                          //Text('ค้นหา'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              child: AppText(
+                text: "ผลกิจกรรม",
+                size: 25,
               ),
             ),
 
-            SizedBox(height: 5,),
-
-            Container(
-              margin: EdgeInsets.only(right: 15, left: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start, // จัดตำแหน่งปุ่มที่ด้านขวา
-                children: [
-                  Material(
-                    color: const Color.fromARGB(255, 199, 199, 199),
-                    borderRadius: BorderRadius.circular(30),
-                    child: InkWell(
-                      onTap: () {
-                        //Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 10,
-                        ),
-                        child: Text(
-                          "ตรวจสอบรายชื่อเข้าร่วมกิจกรรม",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontFamily: "Maehongson",
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 5,),
-                  Material(
-                    color: const Color.fromARGB(255, 199, 199, 199),
-                    borderRadius: BorderRadius.circular(30),
-                    child: InkWell(
-                      onTap: () {
-                        //Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 10,
-                        ),
-                        child: Text(
-                          "ลงทะเบียน",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontFamily: "Maehongson",
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 5,),
-                  Material(
-                    color: const Color.fromARGB(255, 199, 199, 199),
-                    borderRadius: BorderRadius.circular(30),
-                    child: InkWell(
-                      onTap: () {
-                        //Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 10,
-                        ),
-                        child: Text(
-                          "กิจกรรม",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontFamily: "Maehongson",
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            SizedBox(
+              height: 5,
             ),
-
-            SizedBox(height: 5,),
 
             //หน่วยกิตรวม
             Container(
@@ -193,52 +106,17 @@ class _Activity_Results_ScreenState extends State<Activity_Results_Screen> with 
             ),
 
             //tabber แถบเมนู วัน สัปดาห์ เดือน
-            Container(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TabBar(
-                    labelPadding: const EdgeInsets.only(left: 20, right: 20),
-                    controller: _tabController,
-                    labelColor: Colors.black,
-                    unselectedLabelColor: Colors.grey,
-                    isScrollable: true,
-                    // indicatorSize: TabBarIndicatorSize.label,
-                    // indicator: CircleTabIndicator(color: AppColors.mainColor, radius: 4),
-                    tabs: const [
-                      Tab(
-                        child: Text(
-                          "วัน",
-                          style: TextStyle(
-                            fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: Text(
-                          "สัปดาห์",
-                          style: TextStyle(
-                            fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                          ),
-                        ),
-                      ),
-                      Tab(
-                        child: Text(
-                          "เดือน",
-                          style: TextStyle(
-                            fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              )
-            ),
 
-            SizedBox(height: 5,),
+            SizedBox(
+              height: 5,
+            ),
 
             Container(
               margin: const EdgeInsets.only(left: 15),
-              child: AppText(text: "รายการเข้าร่วมกิจกรรม", size: 20,),
+              child: AppText(
+                text: "รายการเข้าร่วมกิจกรรม",
+                size: 20,
+              ),
             ),
 
             //ช่องใส่ข้อมูลแต่ละหน้า
@@ -249,11 +127,13 @@ class _Activity_Results_ScreenState extends State<Activity_Results_Screen> with 
               child: TabBarView(
                 controller: _tabController,
                 children: [
-
                   ListView.builder(
-                    itemCount: 1,
+                    itemCount: activityTypeData
+                        .length, // ใช้ความยาวของ activityTypeData เพื่อกำหนดจำนวนของไอเท็ม
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (BuildContext context, int index) {
+                      // ดึงข้อมูลจาก activityTypeData โดยใช้ index
+                      var activityType = activityTypeData[index];
                       return Container(
                         margin: const EdgeInsets.only(right: 15, top: 10),
                         width: 330,
@@ -265,55 +145,101 @@ class _Activity_Results_ScreenState extends State<Activity_Results_Screen> with 
                             width: 1.0,
                           ),
                         ),
-                      );
-                    }
-                  ),
-
-                  ListView.builder(
-                    itemCount: 1,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        margin: const EdgeInsets.only(right: 15, top: 10),
-                        width: 330,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 45, 212, 51),
-                            width: 1.0,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                'Activity ID: ${activityType['act_id']}'), // แสดง act_id
+                            Text(
+                                'Activity Name: ${activityType['act_name']}'), // แสดง act_name
+                            Text(
+                                'Activity Year: ${activityType['act_year']}'), // แสดง act_year
+                            Text(
+                                'Activity Credit: ${activityType['act_credit']}'), // แสดง act_credit
+                            Text(
+                                'Activity Total Max: ${activityType['act_total_max']}'), // แสดง act_total_max
+                          ],
                         ),
                       );
-                    }
-                  ),
-
-                  ListView.builder(
-                    itemCount: 1,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        margin: const EdgeInsets.only(right: 15, top: 10),
-                        width: 330,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 45, 212, 51),
-                            width: 1.0,
-                          ),
-                        ),
-                      );
-                    }
-                  ),
-
+                    },
+                  )
                 ],
               ),
             ),
-            
           ],
         ),
       ),
     );
   }
 }
+//   Widget buildActivityCard(Map<String, dynamic> activity) {
+//     return FutureBuilder<Map<String, dynamic>>(
+//       future: fetchUserData(
+//           context,
+//           activity[
+//               'mb_id']), // เรียกใช้ Future fetchUserData ด้วย mb_id ของกิจกรรม
+//       builder: (context, snapshot) {
+//         if (snapshot.connectionState == ConnectionState.waiting) {
+//           // หากกำลังโหลดข้อมูล จะแสดง Indicator หรืออะไรก็ตาม
+//           return CircularProgressIndicator(); // เปลี่ยนเป็น Indicator ที่คุณต้องการ
+//         } else if (snapshot.hasError) {
+//           // หากเกิดข้อผิดพลาดในการโหลดข้อมูล
+//           return Text('Error: ${snapshot.error}');
+//         } else {
+//           // หากโหลดข้อมูลเสร็จสมบูรณ์ จะสร้าง Card โดยใช้ข้อมูลที่ได้จาก Future fetchUserData
+//           Map<String, dynamic> userData =
+//               snapshot.data ?? {}; // ดึงข้อมูลที่ได้จาก Future
+//           return Card(
+//             color: Colors.white,
+//             shape: RoundedRectangleBorder(
+//               borderRadius: BorderRadius.circular(15),
+//               side: BorderSide(color: Colors.green, width: 1),
+//             ),
+//             child: ListTile(
+//               leading: Image.asset(
+//                 'assate/images/act_03.png',
+//                 fit: BoxFit.cover,
+//                 width: 100,
+//                 height: 170,
+//               ),
+//               title: Text(
+//                 activity['act_name'] ?? '',
+//                 style: TextStyle(
+//                   color: Colors.red,
+//                   fontSize: 10,
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//               ),
+//               subtitle: Text(
+//                 'Location: ${activity['act_location'] ?? ''}\n'
+//                 'Date: ${activity['date_start'] ?? ''} - ${activity['date_end'] ?? ''}\n'
+//                 'Registrations: ${activity['act_current_registrations'] ?? ''}\n'
+//                 'User Name: ${userData['membername'] ?? ''}\n' // แสดงชื่อผู้ใช้จากข้อมูลที่ได้จาก Future
+//                 'User Email: ${userData['memberEmail'] ?? ''}\n' // แสดงอีเมลผู้ใช้จากข้อมูลที่ได้จาก Future
+//                 'User Tel: ${userData['memberTel'] ?? ''}', // แสดงเบอร์โทรศัพท์ผู้ใช้จากข้อมูลที่ได้จาก Future
+//                 style: TextStyle(
+//                   color: Colors.blue,
+//                   fontSize: 14,
+//                 ),
+//               ),
+//               trailing: ElevatedButton(
+//                 onPressed: () {
+//                   // ระบุการดำเนินการเมื่อปุ่มถูกกด
+//                 },
+//                 style: ElevatedButton.styleFrom(
+//                   primary: Colors.black,
+//                 ),
+//                 child: Text(
+//                   'ลงทะเบียน',
+//                   style: TextStyle(
+//                     color: Colors.white,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           );
+//         }
+//       },
+//     );
+//   }
+// }

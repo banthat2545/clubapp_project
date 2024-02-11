@@ -1,250 +1,163 @@
-// import 'dart:async';
-import 'package:clubapp_project/widget/app_text.dart';
-import 'package:clubapp_project/widget/back_button.dart';
 import 'package:flutter/material.dart';
-// import 'package:clubapp_project/pages/activity_controller.dart';
-// import 'package:clubapp_project/pages/activity_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:clubapp_project/widget/user_provider.dart';
+import 'package:provider/provider.dart';
 
-class Register_ToJoin_Screen extends StatefulWidget {
-  const Register_ToJoin_Screen({Key? key}) : super(key: key);
-
+class Register_Activity_Screen extends StatefulWidget {
   @override
-  State<Register_ToJoin_Screen> createState() => _Register_ToJoin_ScreenState();
+  _Register_Activity_ScreenState createState() =>
+      _Register_Activity_ScreenState();
 }
 
-class _Register_ToJoin_ScreenState extends State<Register_ToJoin_Screen>
-    with TickerProviderStateMixin {
-  TextEditingController searchController = TextEditingController();
-  // List<activityModel> activityList = [];
-  // StreamController _streamController = StreamController();
+class _Register_Activity_ScreenState extends State<Register_Activity_Screen> {
+  late Future<List<dynamic>> futureActivities;
 
-  // Future getAllActivity() async {
-  //   activityList = await activitycontroller().getactivity();
-  //   _streamController.sink.add(activityList);
-  // }
+  void initState() {
+    super.initState();
+    futureActivities = fetchData();
+  }
 
-  // @override
-  // void initState() {
-  //   Timer.periodic(Duration(seconds: 1), (timer) {
-  //     getAllActivity();
-  //   });
-  //   super.initState();
-  // }
+  Future<List<dynamic>> fetchData() async {
+    final Uri url =
+        Uri.parse('http://192.168.1.198/api_club_app/show_Activity.php');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body)['response'];
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+String _actId = ''; // สร้างตัวแปร global เพื่อเก็บค่า actId
+
+Future<void> registerActivity(User_Provider userProvider) async {
+    final String apiUrl = 'http://192.168.1.198/api_club_app/show_Register_Activity.php';
+
+    // Get mb_id from User_Provider
+    final String mbId = userProvider.loggedInCustomer.memberID;
+
+    try {
+      // Using http package
+      final http.Response response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'mb_id': mbId,
+          'act_id': _actId, // ใช้ค่า actId ที่ได้จากการดึงข้อมูลกิจกรรม
+        }),
+      );
+
+      // Decode JSON response
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        // Handle success
+        print(responseData);
+      } else {
+        // Handle error
+        print('Failed to register activity: ${responseData['message']}');
+      }
+    } catch (e) {
+      // Handle exception
+      print('Exception occurred: $e');
+    }
+}
+
 
   @override
   Widget build(BuildContext context) {
-    TabController _tabController = TabController(length: 3, vsync: this);
-    return Scaffold(
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('รายการกิจกรรม'),
+        ),
+        body: FutureBuilder<List<dynamic>>(
+          future: futureActivities,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text('Error: ${snapshot.error}'),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return buildActivityCard(snapshot.data![index]);
+                },
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget buildActivityCard(Map<String, dynamic> activity) {
+    return Card(
+      color: Colors.white, // กำหนดสีของ Card
+      shape: RoundedRectangleBorder(
+        // เพิ่มเส้นขอบให้กับ Card
+        borderRadius: BorderRadius.circular(15), // กำหนดรูปร่างของเส้นขอบ
+        side: BorderSide(
+            color: Colors.green, width: 1), // กำหนดสีและความหนาของเส้นขอบ
+      ),
+      child: ListTile(
+        leading: Image.asset(
+          'assate/images/act_03.png', // ตำแหน่งของรูปภาพภายในโปรเจค
+          fit: BoxFit.cover,
+          width: 100, // กำหนดความกว้างของรูปภาพ
+          height: 170,
+        ), // กำหนดความสูงของรูปภาพ
+        title: Text(
+          activity['act_name'] ?? '',
+          style: TextStyle(
+            color: Colors.red, // กำหนดสีของตัวอักษรเป็นสีแดง
+            fontSize: 10, // กำหนดขนาดของตัวอักษรเป็น 18
+            fontWeight: FontWeight.bold, // กำหนดตัวหนาของตัวอักษร
+          ),
+        ),
+        subtitle: Text(
+          'Location: ${activity['act_location'] ?? ''}\n'
+          'Date: ${activity['date_start'] ?? ''} - ${activity['date_end'] ?? ''}\n'
+          'Registrations: ${activity['act_current_registrations'] ?? ''}',
+          style: TextStyle(
+            color: Colors.blue, // กำหนดสีของตัวอักษรเป็นสีน้ำเงิน
+            fontSize: 14, // กำหนดขนาดของตัวอักษรเป็น 14
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween, // จัดการตำแหน่งของปุ่มและ
+
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween, // จัดการตำแหน่งของปุ่มและข้อความ
+          crossAxisAlignment:
+              CrossAxisAlignment.end, // จัดการตำแหน่งให้ปุ่มไหลลงมา
           children: [
-            //Back
-            Container(
-              child: Row(
-                children: [
-                  // Icon(Icons.menu, size: 30, color: Colors.black54),
-                  Expanded(child: Container()),
-                  Container(
-                    child: BackButtonWidget(),
-                  ),
-                ],
+            // Text('Registrations: ${activity['act_current_registrations'] ?? ''}'),
+            SizedBox(width: 1), // เพิ่มระยะห่างระหว่างปุ่มและข้อความ
+            ElevatedButton(
+              onPressed: () {
+                User_Provider userProvider =
+                    Provider.of<User_Provider>(context, listen: false);
+                registerActivity(userProvider);
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Colors.black, // กำหนดสีพื้นหลังของปุ่มเป็นสีดำ
+              ),
+              child: Text(
+                'ลงทะเบียน',
+                style: TextStyle(
+                  color: Colors.white, // กำหนดสีของตัวหนังสือเป็นสีขาว
+                ),
               ),
             ),
-
-            SizedBox(
-              height: 5,
-            ),
-
-            //discover text หัวข้อ
-            Container(
-              margin: const EdgeInsets.only(left: 15),
-              child: AppText(
-                text: "ลงทะเบียนเข้าร่วมกิจกรรม",
-                size: 25,
-              ),
-            ),
-
-            SizedBox(
-              height: 5,
-            ),
-
-            //ค้นหา
-            Container(
-              margin: EdgeInsets.only(right: 15, left: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        prefixIcon:
-                            const Icon(Icons.search, color: Colors.black26),
-                        labelText: 'ค้นหา',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 10),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  SizedBox(
-                    width: 60, // กำหนดความกว้าง
-                    height: 45, // กำหนดความยาว
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF3AE374), // กำหนดพื้นหลัง
-                      ),
-                      onPressed: () {
-                        String searchTerm = searchController.text;
-                        print('ค้นหาข้อมูล: $searchTerm');
-                      },
-                      child: const Column(
-                        mainAxisSize: MainAxisSize
-                            .min, // ทำให้ Column มีความกว้างเท่ากับปุ่ม
-                        mainAxisAlignment: MainAxisAlignment
-                            .center, // จัดให้เล็กเล่นอยู่ตรงกลาง
-                        children: [
-                          Icon(Icons.search, color: Colors.white, size: 30),
-                          //Text('ค้นหา'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(
-              height: 5,
-            ),
-
-            //tabber แถบเมนู วัน สัปดาห์ เดือน
-            Container(
-                child: Align(
-              alignment: Alignment.centerLeft,
-              child: TabBar(
-                labelPadding: const EdgeInsets.only(left: 20, right: 20),
-                controller: _tabController,
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.grey,
-                isScrollable: true,
-                // indicatorSize: TabBarIndicatorSize.label,
-                // indicator: CircleTabIndicator(color: AppColors.mainColor, radius: 4),
-                tabs: const [
-                  Tab(
-                    child: Text(
-                      "วัน",
-                      style: TextStyle(
-                        fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                      ),
-                    ),
-                  ),
-                  Tab(
-                    child: Text(
-                      "สัปดาห์",
-                      style: TextStyle(
-                        fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                      ),
-                    ),
-                  ),
-                  Tab(
-                    child: Text(
-                      "เดือน",
-                      style: TextStyle(
-                        fontFamily: 'Maehongson', // ระบุฟอนต์ที่คุณต้องการใช้
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-            //ช่องใส่ข้อมูลแต่ละหน้า
-            Container(
-              padding: const EdgeInsets.only(left: 15),
-              height: 160,
-              width: double.maxFinite,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  ListView.builder(
-                      itemCount: 1,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 15, top: 10),
-                          width: 150,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.blue,
-                          ),
-                        );
-                      }),
-                  ListView.builder(
-                      itemCount: 7,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 15, top: 10),
-                          width: 330,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: const Color.fromARGB(255, 231, 162, 71),
-                          ),
-                        );
-                      }),
-                  ListView.builder(
-                      itemCount: 1,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 15, top: 10),
-                          width: 330,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.green,
-                          ),
-                        );
-                      }),
-                ],
-              ),
-            ),
-
-            // Container(
-            //   margin: const EdgeInsets.only(right: 15, left: 15),
-            //   height: 30,
-            //   width: MediaQuery.of(context).size.width,
-            //   decoration: BoxDecoration(
-            //     border: Border.all(
-            //       color: const Color.fromARGB(255, 45, 212, 51),
-            //       width: 1.0,
-            //     ),
-            //     borderRadius: BorderRadius.circular(10),
-            //   ),
-              // child: StreamBuilder(
-              //   stream: _streamController.stream,
-              //   builder: (context, snapshost) {
-              //     if (snapshost.hasData) {
-              //       return ListView.builder(itemBuilder: ((context, index) {
-              //         activityModel activity = activityList[index];
-              //         return ListTile(
-              //           title: Text(activity.act_location),
-              //         );
-              //       }));
-              //     }
-              //     return Center(
-              //       child: CircularProgressIndicator(),
-              //     );
-              //   },
-              // )
-            // )
           ],
         ),
       ),

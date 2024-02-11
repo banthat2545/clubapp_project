@@ -153,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onClick() {
     http
-        .post(Uri.parse('http://10.50.50.208:80/club_app/signup.php'),
+        .post(Uri.parse('http://172.24.142.139:80/club_app/signup.php'),
             body: jsonEncode({
               'mb_id': id.text,
               'mb_name': name.text,

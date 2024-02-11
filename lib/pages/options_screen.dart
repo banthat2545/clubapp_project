@@ -15,7 +15,7 @@ class _Options_ScreenState extends State<Options_Screen> {
   int currentIndex = 0;
   List widgetOptions = [
     Home_Screen(),
-    Register_ToJoin_Screen(),
+    Register_Activity_Screen(),
     Activity_Results_Screen(),
     profile_Screen(),
     Text("ข้อมูลส่วนตัว"),

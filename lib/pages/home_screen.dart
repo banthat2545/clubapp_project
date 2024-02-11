@@ -1,4 +1,4 @@
-import 'package:clubapp_project/pages/LoginScreen.dart';
+import 'package:clubapp_project/pages/login_screen.dart';
 import 'package:clubapp_project/widget/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -86,7 +86,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       onPressed: () {
                         String searchTerm = searchController.text;
                         Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => LoginScreen()));
+                            MaterialPageRoute(builder: (_) => Login_Screen()));
                         print('ค้นหาข้อมูล: $searchTerm');
                       },
                       child: const Column(
