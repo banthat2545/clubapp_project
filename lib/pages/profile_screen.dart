@@ -30,7 +30,7 @@ class _profile_ScreenState extends State<profile_Screen> {
   }
 
   Future<void> fetchUserProfile() async {
-    final url = Uri.parse('http://192.168.1.198/api_club_app/showUser.php');
+    final url = Uri.parse('http://127.0.0.182/api_club_app/showUser.php');
     final userProvider = Provider.of<User_Provider>(context, listen: false);
     try {
       final response = await http.post(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:clubapp_project/widget/user_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:localstorage/localstorage.dart';
+// import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
 class Register_Activity_Screen extends StatefulWidget {
   @override
@@ -20,7 +22,7 @@ class _Register_Activity_ScreenState extends State<Register_Activity_Screen> {
 
   Future<List<dynamic>> fetchData() async {
     final Uri url =
-        Uri.parse('http://192.168.1.198/api_club_app/show_Activity.php');
+        Uri.parse('http://127.0.0.182/api_club_app/show_Activity.php');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -30,40 +32,45 @@ class _Register_Activity_ScreenState extends State<Register_Activity_Screen> {
     }
   }
 
-String _actId = ''; // สร้างตัวแปร global เพื่อเก็บค่า actId
+ final LocalStorage storage = LocalStorage('user_profile');
 
-Future<void> registerActivity(User_Provider userProvider) async {
-    final String apiUrl = 'http://192.168.1.198/api_club_app/show_Register_Activity.php';
+  Future<void> registerActivity(User_Provider userProvider, String activity) async {
+  final String apiUrl = 'http://127.0.0.182/api_club_app/show_Register_Activity.php';
 
-    // Get mb_id from User_Provider
-    final String mbId = userProvider.loggedInCustomer.memberID;
+  try {
+    await storage.ready;
+    // Get mb_id from LocalStorage
+    final Map<String, dynamic>? userData = storage.getItem('user_profile');
+    final String? mbId = userData?['userId'];
 
-    try {
-      // Using http package
-      final http.Response response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'mb_id': mbId,
-          'act_id': _actId, // ใช้ค่า actId ที่ได้จากการดึงข้อมูลกิจกรรม
-        }),
-      );
-
-      // Decode JSON response
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        // Handle success
-        print(responseData);
-      } else {
-        // Handle error
-        print('Failed to register activity: ${responseData['message']}');
-      }
-    } catch (e) {
-      // Handle exception
-      print('Exception occurred: $e');
+    if (mbId == null) {
+      print('Error: mb_id not found in LocalStorage.');
+      return;
     }
+
+    final http.Response response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'mb_id': mbId, // Use mbId retrieved from LocalStorage
+        'act_id': activity, // Use the provided activity
+      }),
+    );
+
+    // Decode JSON response
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      print('Response Data: $responseData');
+      // Handle success
+    } else {
+      print('Failed to register activity. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    // Handle exception
+    print('Exception occurred: $e');
+  }
 }
 
 
@@ -142,21 +149,19 @@ Future<void> registerActivity(User_Provider userProvider) async {
           children: [
             // Text('Registrations: ${activity['act_current_registrations'] ?? ''}'),
             SizedBox(width: 1), // เพิ่มระยะห่างระหว่างปุ่มและข้อความ
+            //เรียกใช้งานฟังก์ชัน registerActivity เมื่อผู้ใช้คลิกที่ปุ่ม "ลงทะเบียน"
             ElevatedButton(
-              onPressed: () {
-                User_Provider userProvider =
-                    Provider.of<User_Provider>(context, listen: false);
-                registerActivity(userProvider);
+              onPressed: () async {
+                try {
+                  // เรียกใช้งานฟังก์ชัน registerActivity เพื่อลงทะเบียนกิจกรรม
+                  await registerActivity(User_Provider(), activity['act_id']);
+                  // กระทำตามลำดับถัดไปหลังจากลงทะเบียนกิจกรรมสำเร็จ
+                } catch (e) {
+                  // จัดการกับข้อผิดพลาดในการลงทะเบียนกิจกรรม
+                  print('Failed to register activity: $e');
+                }
               },
-              style: ElevatedButton.styleFrom(
-                primary: Colors.black, // กำหนดสีพื้นหลังของปุ่มเป็นสีดำ
-              ),
-              child: Text(
-                'ลงทะเบียน',
-                style: TextStyle(
-                  color: Colors.white, // กำหนดสีของตัวหนังสือเป็นสีขาว
-                ),
-              ),
+              child: Text('ลงทะเบียนกิจกรรม'),
             ),
           ],
         ),

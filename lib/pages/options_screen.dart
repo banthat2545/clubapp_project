@@ -1,6 +1,7 @@
 
+import 'package:clubapp_project/pages/activity_results_screen1.dart';
 import 'package:clubapp_project/pages/profile_screen.dart';
-import 'package:clubapp_project/pages/activity_results_screen.dart';
+// import 'package:clubapp_project/pages/activity_results_screen.dart';
 import 'package:clubapp_project/pages/home_screen.dart';
 import 'package:clubapp_project/pages/register_activity_screen.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class _Options_ScreenState extends State<Options_Screen> {
   List widgetOptions = [
     Home_Screen(),
     Register_Activity_Screen(),
-    Activity_Results_Screen(),
+    activity_results_screen1(),
     profile_Screen(),
     Text("ข้อมูลส่วนตัว"),
   ];

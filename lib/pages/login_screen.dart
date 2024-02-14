@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-// import 'dart:async';
+import 'package:localstorage/localstorage.dart'; // Add this import statement
 
 class Login_Screen extends StatefulWidget {
   const Login_Screen({Key? key}) : super(key: key);
@@ -21,37 +21,43 @@ class _Login_ScreenState extends State<Login_Screen> {
   var passwordController = TextEditingController();
   var isObsecure = true.obs;
 
-  Future<void> signin() async {
-  String mb_email = idController.text;
-  String mb_password = passwordController.text;
+  final LocalStorage storage = LocalStorage('user_profile');
 
-  if (mb_email.isEmpty || mb_password.isEmpty) {
-    return;
-  }
+  Future<void> signin(BuildContext context, TextEditingController idController,
+      TextEditingController passwordController) async {
+    String mb_email = idController.text;
+    String mb_password = passwordController.text;
 
-  var url = Uri.parse('http://192.168.1.198/api_club_app/login.php');
-  var response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'mb_email': mb_email, 'mb_password': mb_password}),
-  );
-
-  if (response.statusCode == 200) {
-    var data = json.decode(response.body);
-    String message = data['message'];
-    String? mb_id = data['mb_id'];
-    print(mb_id);
-    if (message == 'ล็อกอินสำเร็จ') {
-
-      Provider.of<User_Provider>(context,listen: false).setUserId(mb_id!);
-      Navigator.pushReplacementNamed(context, '/OptionsScreen');
-    } else {
-
+    if (mb_email.isEmpty || mb_password.isEmpty) {
+      return;
     }
-  } else {
 
+    var url = Uri.parse('http://127.0.0.182/api_club_app/login.php');
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'mb_email': mb_email, 'mb_password': mb_password}),
+    );
+
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      String message = data['message'];
+      String? mb_id = data['mb_id'];
+      print(mb_id);
+      if (message == 'ล็อกอินสำเร็จ') {
+        // Save user ID locally
+        await storage.ready;
+        storage.setItem('user_profile', {'userId': mb_id});
+        // Notify the provider with the user ID
+        Provider.of<User_Provider>(context, listen: false).setUserId(mb_id!);
+        Navigator.pushReplacementNamed(context, '/OptionsScreen');
+      } else {
+        // Handle unsuccessful login
+      }
+    } else {
+      // Handle network errors
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -93,10 +99,6 @@ class _Login_ScreenState extends State<Login_Screen> {
                                 child: Form(
                                   key: formKey,
                                   child: Column(
-                                    // children: [
-                                    //   Form(
-                                    //     key: formKey,
-                                    //     child: Column(
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.all(5.0),
@@ -110,12 +112,10 @@ class _Login_ScreenState extends State<Login_Screen> {
                                               fontFamily: "Maehongson"),
                                         ),
                                       ),
-                                      //กรอกรหัสนักศึกษา
                                       Padding(
                                         padding: const EdgeInsets.all(5.0),
                                         child: TextFormField(
                                           style: TextStyle(
-                                            // fontSize: 15,
                                             color: Colors.green,
                                             fontFamily: "Maehongson",
                                           ),
@@ -126,7 +126,6 @@ class _Login_ScreenState extends State<Login_Screen> {
                                             return null;
                                           },
                                           controller: idController,
-                                          // controller: one_value,    //รับค่า ไปเก็ยไว้ในตัวเเปล two_value
                                           decoration: InputDecoration(
                                             labelText: 'ชื่อผู้ใช้',
                                             labelStyle: TextStyle(
@@ -153,14 +152,12 @@ class _Login_ScreenState extends State<Login_Screen> {
                                                 fontSize: 15,
                                                 fontFamily: "Maehongson"),
                                             hintText: "อีเมลมหาวิทยาลัย",
-                                            //hintStyle: TextStyle(fontWeight: FontWeight.w600)
                                             filled: true,
                                             fillColor: Colors.white,
                                             prefixIcon: Icon(
                                               Icons.person,
                                               color: Colors.black26,
                                             ),
-                                            // contentPadding: EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0)
                                             contentPadding:
                                                 EdgeInsets.symmetric(
                                                     vertical: 5.0,
@@ -168,8 +165,6 @@ class _Login_ScreenState extends State<Login_Screen> {
                                           ),
                                         ),
                                       ),
-
-                                      //กรอกรหัสผ่าน
                                       Padding(
                                         padding: const EdgeInsets.all(5.0),
                                         child: Obx(
@@ -198,7 +193,7 @@ class _Login_ScreenState extends State<Login_Screen> {
                                                       ? Icons.visibility_off
                                                       : Icons.visibility,
                                                   color: Colors
-                                                      .green, // เปลี่ยนสีของ icon
+                                                      .green, 
                                                 ),
                                               ),
                                               labelText: 'รหัสผ่าน',
@@ -239,41 +234,6 @@ class _Login_ScreenState extends State<Login_Screen> {
                                           ),
                                         ),
                                       ),
-
-                                      //ปุ่มเข้าสู่ระบบ
-                                      //  Padding(
-                                      //    padding: const EdgeInsets.all(5.0),
-                                      //   child: Material(
-                                      //     color: Colors.green, // สีพื้นหลังของปุ่ม
-                                      //     borderRadius: BorderRadius.circular(30), // ความโค้งขอบ
-                                      //     child: InkWell(
-                                      //       onTap: () {
-                                      //         // รหัสที่คุณต้องการให้ทำเมื่อปุ่มถูกคลิก
-                                      //          bool pass = formKey.currentState!.validate();
-                                      //           if (pass) {
-                                      //         //get_login(); // Corrected: Call _onClick() function
-                                      //       }
-                                      //       },
-                                      //       borderRadius: BorderRadius.circular(30),
-                                      //       child: Padding(
-                                      //         padding: EdgeInsets.symmetric(
-                                      //           vertical: 10,
-                                      //           horizontal: 113,
-                                      //         ),
-                                      //         child: Text(
-                                      //           " เข้าสู่ระบบ ",
-                                      //           style: TextStyle(
-                                      //             color: Colors.white, // สีข้อความ
-                                      //             fontSize: 15,
-                                      //             fontFamily: "Maehongson",
-                                      //           ),
-                                      //         ),
-                                      //       ),
-                                      //     ),
-                                      //   ),
-                                      //  ),
-
-                                      // Login Button
                                       Padding(
                                         padding: const EdgeInsets.all(5.0),
                                         child: Material(
@@ -285,7 +245,8 @@ class _Login_ScreenState extends State<Login_Screen> {
                                               bool pass = formKey.currentState!
                                                   .validate();
                                               if (pass) {
-                                                signin();
+                                                signin(context, idController,
+                                                    passwordController);
                                               }
                                             },
                                             borderRadius:
@@ -307,8 +268,6 @@ class _Login_ScreenState extends State<Login_Screen> {
                                           ),
                                         ),
                                       ),
-
-                                      //คำอธิบาย
                                       Padding(
                                         padding: const EdgeInsets.all(5.0),
                                         child: Text(
@@ -320,19 +279,14 @@ class _Login_ScreenState extends State<Login_Screen> {
                                               fontFamily: "Maehongson"),
                                         ),
                                       ),
-
-                                      //
                                       Padding(
                                         padding: const EdgeInsets.all(10.0),
                                         child: Material(
-                                          color:
-                                              Colors.black, // สีพื้นหลังของปุ่ม
+                                          color: Colors.black,
                                           borderRadius: BorderRadius.circular(
-                                              30), // ความโค้งขอบ
+                                              30),
                                           child: InkWell(
                                             onTap: () {
-                                              // รหัสที่คุณต้องการให้ทำเมื่อปุ่มถูกคลิก
-
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -352,8 +306,7 @@ class _Login_ScreenState extends State<Login_Screen> {
                                                 "สมัครสมาชิก",
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  color:
-                                                      Colors.white, // สีข้อความ
+                                                  color: Colors.white,
                                                   fontSize: 14,
                                                   fontFamily: "Maehongson",
                                                 ),
@@ -362,17 +315,7 @@ class _Login_ScreenState extends State<Login_Screen> {
                                           ),
                                         ),
                                       )
-                                      //email
-                                      //textTitle(),
-                                      //emailInput(),
-                                      //passwordInput(),
-                                      //signInButton(),
-                                      //TextDetails(),
-                                      //signUpButton(),
                                     ],
-                                    //),
-                                    //),
-                                    //],
                                   ),
                                 ),
                               ),
