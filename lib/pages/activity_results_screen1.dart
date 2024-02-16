@@ -12,11 +12,25 @@ class activity_results_screen1 extends StatefulWidget {
 class _activity_results_screen1State extends State<activity_results_screen1> {
   late Future<dynamic> futureActivity;
   final LocalStorage storage = LocalStorage('user_profile');
+  int total = 0;
 
   @override
   void initState() {
     super.initState();
     futureActivity = registerActivity('act_id');
+    calculateTotal();
+  }
+
+  void calculateTotal() async {
+    List<dynamic> campData = await futureActivity;
+
+    // บวกค่า credit ของแต่ละกิจกรรมเพื่อหาค่า total
+    for (var data in campData) {
+      int credit = data['act_credit'];
+      total += credit;
+    }
+
+    setState(() {}); // อัพเดต UI หลังจากคำนวณค่า total เสร็จ
   }
 
   Future<dynamic> registerActivity(String activity) async {
@@ -58,34 +72,172 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('รายการกิจกรรม'),
+          title: Text('ผลรวมหน่วยกิตกิจกรรม'),
         ),
-        body: FutureBuilder<dynamic>(
-          future: futureActivity,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              List<dynamic> campData = snapshot.data;
-              return ListView.builder(
-                itemCount: campData.length,
-                itemBuilder: (context, index) {
-                  return buildActivityCard(campData[index]);
+        body: Column(
+          children: [
+            SizedBox(height: 2), // ระยะห่างด้านบน
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              padding: EdgeInsets.all(15),
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orange),
+              ),
+              child: Column(
+                children: [
+                  SizedBox(
+                      height: 5), // ระยะห่างระหว่าง Text แรกกับ Text ที่สอง
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Text(
+                          'รายการ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 10),
+                        child: Text(
+                          'ทั้งหมด',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: 5), // ระยะห่างระหว่าง Text แรกกับ Text ที่สอง
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Text(
+                          'หน่วยกิตของฉัน',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold, // ให้ตัวหนา
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20), // ปรับระยะห่างระหว่าง Padding
+                        child: Text(
+                          '$total',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold, // ให้ตัวหนา
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 10),
+                        child: Text(
+                          'หน่วยกิต',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold, // ให้ตัวหนา
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      height: 30), // ระยะห่างระหว่าง Text แรกกับ Text ที่สอง
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // จัดให้อยู่ตรงกลาง
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(right: 10),
+                        child: Text(
+                          'ชมรมอนุรักษ์ธรรมชาติเเละสิ่งเเวดล้อม',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 2), // ระยะห่างระหว่าง Box กับ Text
+            Text(
+              'รายการกิจกรรมที่เข้าร่วม',
+              // textAlign: TextAlign.left, // ระบุ textAlign เป็น TextAlign.left
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.black,
+                // decoration: TextDecoration.underline, // เพิ่มเส้นใต้
+                // decorationColor: Colors.red, // สีของเส้นใต้
+                // decorationThickness: 2, // ความหนาของเส้นใต้
+                // decorationStyle: TextDecorationStyle.solid, // ความยาวของเส้นใต้
+              ),
+            ),
+            const Divider(
+              height: 5,
+              thickness: 1,
+              indent: 11,
+              endIndent: 10,
+              color: Colors.grey,
+            ),
+
+            SizedBox(height: 2), // ระยะห่างระหว่าง Box กับ FutureBuilder
+            Expanded(
+              child: FutureBuilder<dynamic>(
+                future: futureActivity,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  } else {
+                    List<dynamic> campData = snapshot.data;
+
+                    return ListView.builder(
+                      itemCount: campData.length,
+                      itemBuilder: (context, index) {
+                        return buildActivityCard(campData[index]);
+                      },
+                    );
+                  }
                 },
-              );
-            }
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -95,9 +247,10 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
     String name = acData['act_name'] ?? '';
     String location = acData['act_location'] ?? '';
     String year = acData['act_year']?.toString() ?? '';
-    String credit = acData['act_credit']?.toString() ?? '';
+    int credit = acData['act_credit'] ?? 0;
 
     return Card(
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
