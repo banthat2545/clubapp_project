@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   localstorage: ^4.0.1
-  sweetalertv2: any
+
   get: ^4.6.5
   fluttertoast: ^8.2.3
   http:   any
@@ -85,6 +85,12 @@ flutter:
     - assate/images/03_welcome.jpg
     - assate/images/01_PF.jpg
     - assate/images/act_03.png
+    - assate/images/regis_01.jpg
+    - assate/images/regis_02.jpg
+    - assate/images/detail_01.jpg
+    - assate/images/detail_02.jpg
+    - assate/images/detail_03.jpg
+    
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

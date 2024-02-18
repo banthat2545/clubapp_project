@@ -1,8 +1,10 @@
+import 'package:clubapp_project/pages/activity_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:clubapp_project/widget/user_provider.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:clubapp_project/pages/List_of_registrants.dart';
 // import 'package:provider/provider.dart';
 // import 'package:provider/provider.dart';
 
@@ -158,32 +160,69 @@ class _Register_Activity_ScreenState extends State<Register_Activity_Screen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('รายการกิจกรรม'),
-        ),
-        body: FutureBuilder<List<dynamic>>(
-          future: futureActivities,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  return buildActivityCard(snapshot.data![index]);
-                },
-              );
-            }
-          },
-        ),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assate/images/regis_01.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      15.0, 150.0, 10.0, 0.0),
+                  child: Text(
+                    'รายการกิจกรรม',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 5),
+                const Divider(
+                  height: 5,
+                  thickness: 1,
+                  indent: 11,
+                  endIndent: 10,
+                  color: Colors.green,
+                ),
+                FutureBuilder<List<dynamic>>(
+                  future: futureActivities,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      );
+                    } else {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          return buildActivityCard(snapshot.data![index]);
+                        },
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -193,219 +232,313 @@ class _Register_Activity_ScreenState extends State<Register_Activity_Screen> {
     DateTime endDateTime = DateTime.parse(activity['end_datetime']);
     DateTime now = DateTime.now();
     bool canRegister = now.isAfter(startDateTime) && now.isBefore(endDateTime);
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      color: Color.fromRGBO(255, 255, 255, 1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: Colors.green, width: 1.5),
-      ),
-      child: Row(children: [
-        // Column 1: Image
-        Expanded(
-          flex: 1,
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10), // ปรับความโค้งของขอบรูป
-              child: Image.asset(
-                'assate/images/act_03.png',
-                fit: BoxFit.cover,
-                width: 150,
-                height: 150,
-              ),
-            ),
-          ),
-        ),
 
-        Expanded(
-          flex: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Row แรก: ข้อความทั้งหมด
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          activity['act_name'] ?? '',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            height: 2, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        SizedBox(
-                            height:
-                                1), // ปรับระยะห่างระหว่างบรรทัดเป็น 4 พิกเซล
-                        Text(
-                          'Location: ${activity['act_location'] ?? ''}\n',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            height: 0.8, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        Text(
-                          'Date: ${activity['date_start'] ?? ''} - ${activity['date_end'] ?? ''}\n',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            height: 0.8, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        Text(
-                          'Registrations: ${activity['act_current_registrations'] ?? ''}',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            // height: 0.8, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        Text(
-                          'Registrations: ${activity['start_datetime'] ?? ''}',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            // height: 0.8, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        Text(
-                          'Registrations: ${activity['end_datetime'] ?? ''}',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            // height: 0.8, // ตั้งค่าระยะห่างระหว่างบรรทัด
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // Your code here
-                          },
-                          style: TextButton.styleFrom(
-                            fixedSize: Size(150, 20), // กำหนดขนาดคงที่ของปุ่ม
-                          ),
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(left: 0),
-                                child: Icon(
-                                  Icons.info_outline,
-                                  color: Colors
-                                      .grey[400], // เลือกค่าสีเทาที่คุณต้องการ
-                                  size: 20,
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Padding(
-                                padding: EdgeInsets.only(left: 0),
-                                child: Text(
-                                  'รายละเอียดกิจกรรม',
+    return Padding(
+      padding: EdgeInsets.only(top: 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            color: Color.fromRGBO(255, 255, 255, 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+              side: BorderSide(color: Colors.green, width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        'assate/images/act_03.png',
+                        fit: BoxFit.cover,
+                        width: 150,
+                        height: 150,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  activity['act_name'] ?? '',
                                   style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[
-                                        500], // เลือกค่าสีเทาที่คุณต้องการ
+                                    color: Colors.green,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    height: 2,
                                   ),
                                 ),
-                              ),
-                            ],
+                                SizedBox(height: 1),
+                                Text(
+                                  'Location: ${activity['act_location'] ?? ''}\n',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 13,
+                                    height: 0.8,
+                                  ),
+                                ),
+                                Text(
+                                  'Date: ${activity['date_start'] ?? ''} - ${activity['date_end'] ?? ''}\n',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 13,
+                                    height: 0.8,
+                                  ),
+                                ),
+                                Text(
+                                  'Registrations: ${activity['act_current_registrations'] ?? ''}',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Activity_Details_Screen(
+                                          actId: activity['act_id'],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    fixedSize: Size(150, 20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 0),
+                                        child: Icon(
+                                          Icons.info_outline,
+                                          color: Colors.grey[400],
+                                          size: 20,
+                                        ),
+                                      ),
+                                      SizedBox(width: 5),
+                                      Padding(
+                                        padding: EdgeInsets.only(left: 0),
+                                        child: Text(
+                                          'รายละเอียดกิจกรรม',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 5), // ปรับระยะห่างระหว่าง Row แรกและ Row ที่สอง
-              // Row ที่สอง: ปุ่ม
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 2, 10),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Your code here
-                      },
-                      style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(Size(50, 40)),
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.orange),
+                        ],
                       ),
-                      child: Text(
-                        'รายชื่อผู้ลงทะเบียน',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 2), // ปรับระยะห่างระหว่างปุ่ม
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 10, 10),
-                    child: ElevatedButton(
-                      onPressed: canRegister
-                          ? () async {
-                              final Map<String, dynamic>? userData =
-                                  storage.getItem('user_profile');
-                              final String? mbId = userData?['userId'];
-                              try {
-                                // เรียกใช้ checkRegisterActivity
-                                bool registrationStatus =
-                                    await checkRegisterActivity(
-                                        User_Provider(), activity['act_id']);
+                      SizedBox(height: 5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 0, 2, 10),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ListOfRegistrants(
+                                        actId: activity['act_id']),
+                                  ),
+                                );
+                              },
+                              style: ButtonStyle(
+                                minimumSize:
+                                    MaterialStateProperty.all(Size(50, 40)),
+                                backgroundColor:
+                                    MaterialStateProperty.all(Colors.orange),
+                              ),
+                              child: Text(
+                                'รายชื่อผู้ลงทะเบียน',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 0, 10, 10),
+                            child: ElevatedButton(
+                              onPressed: canRegister
+                                  ? () async {
+                                      try {
+                                        bool registrationStatus =
+                                            await checkRegisterActivity(
+                                                User_Provider(),
+                                                activity['act_id']);
+                                        print(
+                                            'Registration Status: $registrationStatus');
 
-                                if (registrationStatus) {
-                                  bool MaxStatus =
-                                      await checkMaxRegisterActivity(
-                                          activity['act_id']);
-                                  if (MaxStatus) {
-                                    print(
-                                        'ทำการยืนยังการลงทะเบียนค่า ไปกันต่อ');
-                                    print('ยังไม่เต็มค่า ไปกันต่อ');
-                                  } else {
-                                    print('แจ้งว่าเต็มแล้วค่า ไปกันต่อ');
-                                  }
-                                } else {
-                                  print('แจ้งว่าลงทะเบียนแล้วค่า ไปกันต่อ');
-                                }
-                              } catch (e) {
-                                print(e);
-                              }
-                            }
-                          : null,
-                      style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(Size(50, 40)),
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(MaterialState.disabled)) {
-                            return Colors
-                                .grey; // ให้เป็นสีเทาเมื่อปุ่มไม่สามารถกดได้
-                          }
-                          return Colors
-                              .black; // ให้เป็นสีดำเมื่อปุ่มสามารถกดได้
-                        }),
+                                        if (registrationStatus) {
+                                          bool maxStatus =
+                                              await checkMaxRegisterActivity(
+                                                  activity['act_id']);
+                                          print('Max Status: $maxStatus');
+
+                                          if (maxStatus) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Text("การลงทะเบียน"),
+                                                  content: Text(
+                                                      "คุณต้องการลงทะเบียนหรือไม่"),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: Text("ยืนยัน"),
+                                                      onPressed: () async {
+                                                        await registerActivity(
+                                                            User_Provider(),
+                                                            activity['act_id']);
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return AlertDialog(
+                                                              title: Text(
+                                                                  "การลงทะเบียน"),
+                                                              content: Text(
+                                                                  "การลงทะเบียนสำเร็จ"),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  child: Text(
+                                                                      "ตกลง"),
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: Text("ยกเลิก"),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          } else {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Text("การลงทะเบียน"),
+                                                  content: Text(
+                                                      "กิจกรรมนี้เต็มแล้ว ขอบคุณที่สนใจ"),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: Text("ตกลง"),
+                                                      onPressed: () async {
+                                                        await registerActivity(
+                                                            User_Provider(),
+                                                            activity['act_id']);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        } else {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: Text("การลงทะเบียน"),
+                                                content: Text(
+                                                    "คุณได้ลงทะเบียนกิจกรรมนี้แล้ว"),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    child: Text("ตกลง"),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        }
+                                      } catch (e) {
+                                        print(e);
+                                      }
+                                    }
+                                  : null,
+                              style: ButtonStyle(
+                                minimumSize:
+                                    MaterialStateProperty.all(Size(50, 40)),
+                                backgroundColor:
+                                    MaterialStateProperty.resolveWith<Color>(
+                                  (states) {
+                                    if (states
+                                        .contains(MaterialState.disabled)) {
+                                      return Colors.grey;
+                                    }
+                                    return Colors.black;
+                                  },
+                                ),
+                              ),
+                              child: Text(
+                                'ลงทะเบียน',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'ลงทะเบียน',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }

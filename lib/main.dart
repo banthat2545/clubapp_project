@@ -1,7 +1,7 @@
+import 'package:clubapp_project/pages/first_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:clubapp_project/widget/user_provider.dart';
-import 'package:clubapp_project/pages/first_screen.dart';
 import 'package:clubapp_project/routes.dart';
 
 void main() {

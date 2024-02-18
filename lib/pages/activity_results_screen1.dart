@@ -72,7 +72,6 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -89,7 +88,7 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
               height: 150,
               decoration: BoxDecoration(
                 color: Colors.orange,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.orange),
               ),
               child: Column(
@@ -147,7 +146,7 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
                           '$total',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 22,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold, // ให้ตัวหนา
                             decoration: TextDecoration.none,
                           ),
@@ -168,7 +167,7 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
                     ],
                   ),
                   SizedBox(
-                      height: 30), // ระยะห่างระหว่าง Text แรกกับ Text ที่สอง
+                      height: 15), // ระยะห่างระหว่าง Text แรกกับ Text ที่สอง
                   Row(
                     mainAxisAlignment:
                         MainAxisAlignment.center, // จัดให้อยู่ตรงกลาง
@@ -251,7 +250,6 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: BorderSide(
@@ -259,30 +257,59 @@ class _activity_results_screen1State extends State<activity_results_screen1> {
           width: 1,
         ),
       ),
-      child: ListTile(
-        leading: Image.asset(
-          'assate/images/act_03.png',
-          fit: BoxFit.cover,
-          width: 100,
-          height: 170,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // สีพื้นหลังของ Card
+          borderRadius: BorderRadius.circular(15), // โค้งขอบของ Card
         ),
-        title: Text(
-          name,
-          style: TextStyle(
-            color: Colors.red,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(
-          'Name: $name\n'
-          'Location: $location\n'
-          'Date: $year\n'
-          'Registrations: $credit',
-          style: TextStyle(
-            color: Colors.blue,
-            fontSize: 14,
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assate/images/act_03.png', // เปลี่ยนเป็น path ของรูปภาพที่ต้องการแสดงใน Card
+                    fit: BoxFit.cover,
+                    width: 150,
+                    height: 150,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 1),
+                    Text(
+                      'Name: $name\n'
+                      'Location: $location\n'
+                      'Date: $year\n'
+                      'Registrations: $credit',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
